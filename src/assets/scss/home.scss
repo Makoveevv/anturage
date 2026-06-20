@@ -1,0 +1,12 @@
+// use base styles
+@use 'style' as *;
+
+// Components
+// @use 'components/calc';
+@use 'components/contacts';
+@use 'home/intro';
+@use 'home/about-us';
+@use 'home/steps';
+@use 'home/your-photo';
+@use 'components/slider';
+@use 'home/articles';

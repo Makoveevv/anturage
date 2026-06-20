@@ -1,0 +1,40 @@
+# ── Зависимости ───────────────────────────────
+node_modules/
+telegram-bot/node_modules/
+
+# ── Сборка (генерируется Gulp'ом из src/) ──────
+dist/
+
+# ── Секреты (НЕ коммитить!) ────────────────────
+# Приватный ключ сервис-аккаунта Google — отозвать и удалить
+service-account-key.json
+*.pem
+*.key
+# Переменные окружения
+.env
+.env.*
+# Локальная БД сессий бота
+telegram-bot/session_db.json
+
+# Примечание: Telegram Bot Token и Spreadsheet ID намеренно
+# оставлены в appsScripts.js (см. CLAUDE.md) — их не прячем.
+
+# ── Графовый артефакт graphify (регенерируется) ─
+graphify-out/
+
+# ── Локальные настройки Claude Code ────────────
+.claude/settings.local.json
+
+# ── Логи ───────────────────────────────────────
+*.log
+npm-debug.log*
+logs/
+
+# ── ОС / редакторы ─────────────────────────────
+.DS_Store
+.DS_Store?
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~

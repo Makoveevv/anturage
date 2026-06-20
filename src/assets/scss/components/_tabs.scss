@@ -1,0 +1,83 @@
+@use 'index' as *;
+
+.tabs {
+  &__nav {
+    display: flex;
+    justify-content: space-evenly;
+    margin-bottom: 18px;
+
+    @media (max-width: 850px) {
+      justify-content: space-around;
+    }
+
+    @media (max-width: 485px) {
+      flex-direction: column;
+      margin: 0 12%;
+      margin-bottom: 15px;
+    }
+  }
+    
+  &__button {
+    position: relative;
+    padding: 1px;
+    background-color: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    font-size: .9em;
+    font-weight: 400;
+    color: rgba($darkBlue, .7);
+    cursor: pointer;
+
+    @media (max-width: 485px) {
+      width: 100%;
+    }
+
+    &::before,
+    &::after {
+      content: '';
+      background-image: url('../img/icons/calc-tab-arrow.svg');
+      background-repeat: no-repeat;
+      background-position: center;
+      width: 33px;
+      height: 15px;
+      position: absolute;
+      top: 50%;
+      opacity: 0;
+      transform: translateX(-5px);
+      transition: all .2s linear;
+    }
+
+    &::before {
+      transform: translate(-5px, -50%);
+        left: -38px;
+    }
+
+    &::after {
+      right: -38px;
+      transform: translate(5px, -50%) rotate(180deg);
+    }
+
+    &.active {
+      color: rgba($darkBlue, .85);
+      font-weight: 500;
+
+      &::before,
+      &::after {
+        opacity: 1;
+      }
+
+      &::before {
+        transform: translate(0, -50%);
+      }
+
+      &::after {
+        transform: translate(0, -50%) rotate(180deg);
+      }
+    }
+  }
+
+  &__item {&:not(.active) {
+      display: none;
+    }
+  }
+}

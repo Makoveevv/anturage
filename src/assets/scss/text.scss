@@ -1,0 +1,114 @@
+// use base styles
+@use 'style' as *;
+
+// Components
+@use 'components/contacts';
+@use 'components/slider';
+@use 'components/examples';
+
+.content__inner {
+  & > a {
+    font-size: .7rem;
+  }
+
+  p {
+    font-size: .8rem;
+    margin-bottom: 15px;
+
+    @include max576 {
+      font-size: 1rem;
+    }
+  }
+  
+  h2 {
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin-bottom: 7px;
+  }
+
+  h3 {
+    display: inline-block;
+    font-size: .8rem;
+    font-weight: 500;
+  }
+  
+  ul, ol {
+    margin-bottom: 20px;
+    font-size: .85rem;
+
+    @include max576 {
+      font-size: .95rem;
+    }
+
+    ol, ul {
+      font-size: .95em;
+      margin-left: 25px;
+      margin-top: 2px;
+      margin-bottom: 0;
+
+      &>li {
+        &::marker {
+          color: $accent;
+          font-weight: 500;
+        }
+      }
+    }
+
+    ul {
+      li:before {
+        width: 7px;
+        height: 7px;
+      }
+    }
+  }
+  
+  ul {
+    &>li {
+      text-indent: calc(1em + 2px);
+      position: relative;
+    
+      &::before {
+        content: '';
+        width: 13px;
+        height: 13px;
+        border: 2px solid $accent;
+        border-radius: 50%;
+        position: absolute;
+        left: 0;
+        top: .2em;
+
+        @include max576 {
+          width: 10px;
+          height: 10px;
+        }
+      }
+    
+      &:not(:last-child) {
+        margin-bottom: 4px;
+      }
+    }
+  }
+
+  ol {
+    list-style-type: decimal;
+
+    &>li {
+      text-indent: 0;
+    }
+  }
+  
+  strong, b {
+    font-weight: 500;
+  }
+
+  a {
+    color: $accent;
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+    margin-bottom: 15px;
+    margin-right: 10px;
+  }
+}

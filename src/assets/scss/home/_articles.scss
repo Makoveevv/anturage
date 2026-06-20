@@ -1,0 +1,124 @@
+@use '../components/index' as *;
+
+.articles {
+  position: relative;
+
+  @include max768 {
+    .article {
+      &:nth-child(3) {
+        display: none;
+      }
+    }
+  }
+
+  @media (max-width: 450px) {
+    .article {
+      &:nth-child(2) {
+        display: none;
+      }
+    }
+  }
+
+  &__blog-link {
+    position: absolute;
+    top: 5px;
+    right: 0;
+    font-size: .7em;
+    color: $lightGray;
+    transition: color .1s linear;
+
+    &:hover {
+      color: $accent;
+    } 
+  }
+  
+  &__inner {
+    display: flex;
+    justify-content: space-between;
+
+    @include max992 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-gap: 10px;
+    }
+
+    @include max768 {
+      grid-template-columns: repeat(2, 1fr);
+      grid-gap: 20px;
+    }
+
+    @media (max-width: 450px) {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+.article {
+  width: 100%;
+  max-width: 230px;
+  padding: 10px 10px 35px;
+  background-color: #F4F8FD;
+  position: relative;
+
+  @include max768 {
+    max-width: none;
+  }
+
+  &:hover {
+    .article__title {
+      color: $accent;
+    }
+
+    .article__more-link {
+      color: $accent;
+    }
+  }
+
+  &__preview {
+    display: block;
+    margin-bottom: 5px;
+
+    img {
+      @include max768 {
+        width: 100%;
+        margin-bottom: 10px;
+      }
+    }
+  }
+
+  &__title {
+    margin-bottom: 3px;
+    font-size: .65em;
+    font-weight: 600;
+    transition: color .1s linear;
+
+    @include max768 {
+      font-size: .7em;
+    }
+
+    @include max576 {
+      font-size: .75em;
+    }
+  }
+
+  &__excerpt {
+    font-size: .55em;
+
+    @include max768 {
+      font-size: .6em;
+    }
+
+    @include max576 {
+      font-size: .65em;
+    }
+  }
+
+  &__more-link {
+    font-size: .6em;
+    color: $lightGray;
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    transition: color .1s linear
+  }
+}

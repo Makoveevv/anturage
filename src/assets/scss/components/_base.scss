@@ -1,0 +1,264 @@
+@use 'index' as *;
+@use 'sass:color';
+
+:root {
+  font-size: calc(0.5em + 1vw);
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  &::before, &::after {
+    box-sizing: border-box;
+  }
+}
+
+html, body {
+  height: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+strong {
+  font-weight: 500;
+}
+
+body {
+  min-width: 280px;
+
+  font-family: 'Roboto', sans-serif;
+  font-size: 20px;
+  line-height: 1.3;
+  color: $gray;
+
+  opacity: 1;
+  
+  &.no-scroll {
+    overflow: hidden;
+  }
+}
+
+img {
+  pointer-events: none;
+}
+
+.img-responsive {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.container {
+  max-width: $container;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 15px;
+}
+
+.main {
+  &__inner {
+    display: flex;
+  }  
+
+  @include max768 {
+    margin-top: 80px;
+  }
+}
+
+.content {
+  width: 100%;
+  position: relative;
+}
+
+.page-title {
+  margin-top: 0;
+  margin-bottom: 20px;
+  padding-bottom: 5px;
+  font-family: "Comfortaa", sans-serif;
+  font-size: 1.6em;
+  color: $gray;
+  position: relative;
+
+  &::after {
+    content: '';
+    width: 100px;
+    height: 3px;
+    background-color: $accent;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+  }
+
+  @include max992 {
+    font-size: 1.7em;
+  }
+
+  @include max768 {
+    font-size: 1.6em;
+  }
+
+  @include max576 {
+    font-size: 1.5em;
+  }
+
+  @media (max-width: 430px) {
+    font-size: 1.25em;
+  }
+}
+
+.page-description {
+  font-size: .7em;
+  margin-bottom: 20px;
+  margin-top: -10px;
+}
+
+.section {
+  margin-bottom: 30px;
+
+  @include max768 {
+    margin-bottom: 50px;
+  }
+
+  &-title {
+    margin-bottom: 20px;
+    padding-bottom: 5px;
+    font-family: "Comfortaa", sans-serif;
+    -webkit-text-stroke: .3px #3e3e3e;
+    font-size: 1em;
+    color: $darkBlue;
+    text-transform: uppercase;
+    position: relative;
+
+    &::after {
+      content: '';
+      width: 50px;
+      height: 2px;
+      background-color: $accent;
+      position: absolute;
+      bottom: 0;
+      left: 0;
+    }
+
+    @media (max-width: 430px) {
+      margin-bottom: 25px;
+    }
+
+    @media (max-width: 340px) {
+      font-size: .85em;
+    }
+  }
+}
+
+.layer {
+  opacity: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  background-color: rgba(#000000, .5);
+  pointer-events: none;
+  transition: opacity .2s linear;
+  transition-delay: .1s;
+  cursor: pointer;
+
+  &.show {
+    opacity: 1;
+    pointer-events: all;
+  }
+}
+
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  margin: 50px 0;
+
+  @media (max-width: 350px) {
+    flex-direction: column;
+  }
+
+  &__link {
+    font-size: .7em;
+    color: $lightGray;
+    position: relative;
+
+    &::after {
+      content: '';
+      width: 13px;
+      height: 9px;
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-position: center;
+      position: absolute;
+      bottom: 5px;
+    }
+
+    &:first-child {
+      padding-left: 18px;
+
+      @media (max-width: 350px) {
+        margin-bottom: 15px;
+      }
+
+      &::after {
+        background-image: url('../img/icons/pag-left-arrow.svg');
+        left: 0;
+      }
+
+
+    }
+
+    &:last-child {
+      padding-right: 18px;
+      text-align: right;
+
+      &::after {
+        background-image: url('../img/icons/pag-right-arrow.svg');
+        right: 0;
+      }
+    }
+  }
+}
+
+.more-btn {
+  margin: 10px auto 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  grid-column: 1 / -1;
+  text-align: center;
+  border-radius: 3px;
+  height: 43px;
+  font-size: .75em;
+  font-weight: 500;
+  background-color: #F4F8FD;
+  padding: 0 47px;
+  cursor: pointer;
+  transition: background-color .1s linear;
+
+  &:hover {
+    background-color: color.adjust(#F4F8FD, $lightness: -2%);
+  }
+}
+
+.disabled {
+  opacity: .6;
+  cursor: unset !important;
+}

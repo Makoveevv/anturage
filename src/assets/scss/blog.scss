@@ -1,0 +1,82 @@
+// Import base styles
+@use 'style' as *;
+
+.articles {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-gap: 30px;
+
+  @include max576 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.article {
+  padding: 10px 10px 50px;
+  background-color: rgba($accent, .15);
+  border-radius: 10px;
+  position: relative;
+
+  &:hover {
+    .article__title,
+    .article__more-link {
+      color: $accent;
+    }
+  }
+
+  &__preview {
+    display: block;
+    margin-bottom: 15px;
+
+    img {
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
+      width: 100%;
+    }
+  }
+
+  &__title {
+    font-size: 1em;
+    font-weight: 500;
+    margin-bottom: 12px;
+    padding-bottom: 14px;
+    position: relative;
+    transition: color .1s linear;
+
+    &::after {
+      content: '';
+      width: 90px;
+      height: 2px;
+      background-color: $accent;
+      position: absolute;
+      left: 0;
+      bottom: 0;
+    }
+
+    @include max992 {
+      font-size: .8em;
+    }
+
+    @include max768 {
+      font-size: .9em;
+    }
+  }
+
+  &__excerpt {
+    font-size: .7em;
+    max-width: 90%;
+
+    @include max992 {
+      font-size: .65em;
+    }
+  }
+
+  &__more-link {
+    font-size: .75em;
+    color: $lightGray;
+    position: absolute;
+    bottom: 15px;
+    right: 20px;
+    transition: color .1s linear;
+  }
+}

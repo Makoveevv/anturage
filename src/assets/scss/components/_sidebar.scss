@@ -1,0 +1,119 @@
+@use 'index' as *;
+
+.sidebar {
+  max-width: 25%;
+  min-width: 250px;
+  width: 100%;
+  margin-right: 25px;
+  margin-bottom: 30px;
+
+  @include max768 {
+    display: none;
+  }
+
+  &__title {
+    margin-bottom: 10px;
+    padding-bottom: 7px;
+    font-size: .9em;
+    font-weight: 700;
+    position: relative;
+
+    &::after {
+      content: '';
+      width: 70px;
+      height: 2px;
+      background-color: $accent;
+      position: absolute;
+      bottom: 0;
+      left: 0;
+    }
+  }
+
+  &__categories {
+    &-item {
+      padding: 0 35px 0 25px;
+      font-size: .75em;
+      border-bottom: 1px solid #DEDEDE;
+      transition: background-color .1s linear;
+
+      &:hover {
+        background-color: #f0f0f0;
+      }
+    }
+
+    &-link {
+      display: block;
+      padding: 12px 0;
+      position: relative;
+
+      &::after {
+        content: '';
+        width: 5px;
+        height: 13px;
+        background-image: url('../img/icons/sidebar-arrow.svg');
+        background-repeat: no-repeat;
+        position: absolute;
+        right: -10px;
+        top: 50%;
+        transform: translateY(-50%);
+      }
+    }
+  }
+
+  &__see-more-link {
+    display: flex;
+    justify-content: center;
+    padding: 12px 0;
+    font-size: .6em;
+    color: $lightGray;
+  }
+
+  &__nav-menu {
+    display: none;
+    margin-bottom: 25px;
+
+    @include max992 {
+      display: block;
+    }
+
+    &-list {
+      margin-top: 15px;
+      display: flex;
+      flex-wrap: wrap;
+    }
+
+    &-item {
+      padding: 0 25px;
+      width: 100%;
+      font-size: .75em;
+      transition: background-color .1s linear;
+
+      &:not(:last-child) {
+        border-bottom: 1px solid #DEDEDE;
+      }
+
+      &:hover {
+        background-color: #f0f0f0;
+      }
+    }
+
+    &-link {
+      display: block;
+      padding: 10px 0;
+      width: 100%;
+      position: relative;
+
+      &::after {
+        content: '';
+        width: 5px;
+        height: 13px;
+        background-image: url('../img/icons/sidebar-arrow.svg');
+        background-repeat: no-repeat;
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+      }
+    }
+  }
+}

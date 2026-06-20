@@ -1,0 +1,70 @@
+// use base styles
+@use 'style' as *;
+@use 'sass:color';
+
+// Components
+@use 'components/contacts';
+
+.gallery {
+  &__categories {
+    margin-bottom: 50px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-gap: 20px;
+    row-gap: 30px;
+
+    @include max992 {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    @include max768 {
+      grid-template-columns: repeat(4, 1fr);
+    }
+
+    @media (max-width: 680px) {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    @media (max-width: 450px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    &-card {
+      border-radius: 10px;
+      overflow: hidden;
+      max-width: 177px;
+      max-height: 100px;
+      position: relative;
+      box-shadow: 0 0 5px 0 rgba($black, .25);
+
+      &:hover {
+        .gallery__categories-img {
+          transform: scale(1.1);
+        }
+
+        .gallery__categories-name {
+          background-color: color.adjust(#F4F8FD, $lightness: -2%);
+        }
+      }
+    }
+
+    &-img {
+      transition: transform .1s linear;
+    }
+  
+    &-name {
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .75em;
+      font-weight: 500;
+      background-color: #F4F8FD;
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      left: 0;
+      transition: background-color .1s linear;
+    }
+  }
+}

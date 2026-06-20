@@ -1,0 +1,12 @@
+@use '../components/index' as *;
+
+.about-us {
+  &__text {
+    font-size: .75em;
+    color: #3E3E3E;
+
+    @include max768 {
+      font-size: .8em;
+    }
+  }
+}

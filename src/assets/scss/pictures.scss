@@ -1,0 +1,205 @@
+// use base styles
+@use 'style' as *;
+
+// Components
+@use 'components/picture';
+@use 'components/product-card';
+@use 'components/contacts';
+
+.pictures {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-gap: 30px;
+  margin-bottom: 50px;
+
+  &__sort-button {
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    position: absolute;
+    top: 10px;
+    right: 0;
+    cursor: pointer;
+  }
+
+  @include max992 {
+    grid-gap: 15px;
+  }
+
+  @media (max-width: 450px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.filters {
+  max-width: 400px;
+  width: 100%;
+  background-color: $white;
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 5;
+  overflow-y: auto;
+  transform: translateX(100%);
+  transition: transform linear .2s;
+
+  form {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 100%;
+  }
+
+  &__body {
+    height: 90%;
+  }
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 30px;
+    border-bottom: 1px solid $accent;
+  }
+
+  &__heading {
+    font-size: 1.25em;
+    font-weight: 500;
+
+    @include max768 {
+      font-size: 1.1em;
+    }
+  }
+
+  &__close {
+    display: flex;
+    align-items: center;
+    padding: 0;
+    background-color: transparent;
+    border: 0;
+    cursor: pointer;
+  }
+
+  &.show {
+    transform: none;
+  }
+
+  &__list {
+    transition: padding .15s linear;
+  }
+
+  &__item {
+    transition: padding .15s linear;
+  }
+
+  &__checkbox {
+    visibility: hidden;
+    position: absolute;
+
+    &:checked {
+      & + .filters__label::before {
+        background-image: url('../img/icons/checkbox.svg');
+        background-repeat: no-repeat;
+        background-size: 11px;
+        background-position: center;
+      }
+    }
+  }
+
+  &__label {
+    padding-left: 30px;
+    cursor: pointer;
+    position: relative;
+
+    &::before {
+      content: '';
+      display: block;
+      width: 15px;
+      height: 15px;
+      border: 1px solid $gray;
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+  }
+
+  &__btn {
+    display: block;
+    width: 85%;
+    padding: 10px 0;
+    margin: 60px 30px;
+    background-color: $accent;
+    color: $white;
+    border: none;
+    cursor: pointer;
+  }
+}
+
+.dropdown {
+  &__name {
+    padding: 10px 30px;
+    font-size: 1.2em;
+    border-bottom: 1px solid rgba($accent, .15);
+    position: relative;
+    cursor: pointer;
+
+    @include max768 {
+      font-size: 1.1em;
+    }
+
+    &::after {
+      content: '';
+      width: 18px;
+      height: 9px;
+      background-image: url('../img/icons/dropdown-arrow.svg');
+      background-repeat: no-repeat;
+      position: absolute;
+      right: 30px;
+      top: 55%;
+      transform: translateY(-50%) rotate(-90deg);
+      transition: transform .1s linear;
+    }
+
+    &.active {
+      &::after {
+        transform: translateY(-50%) rotate(0);
+      }
+    }
+  }
+
+  &__content {
+    overflow: hidden;
+    line-height: 0;
+    opacity: 0;
+    transition: line-height .15s linear, opacity .15s;
+
+    .filters__item {
+      padding: 0;
+
+      @include max768 {
+        font-size: .95em;
+      }
+    }
+
+    .filters__list {
+      padding: 0 30px;
+    }
+
+    &.show {
+      line-height: 1.2;
+      opacity: 1;
+
+      .filters__item {
+        padding: 5px 0;
+      }
+
+      .filters__list {
+        padding: 10px 30px;
+        border-bottom: 1px solid rgba($accent, .15);
+      }
+    }
+  }
+}
+

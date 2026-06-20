@@ -1,0 +1,82 @@
+@use '../components/index' as *;
+
+.your-photo {
+  display: flex;
+  align-items: center;
+  padding: 20px 35px;
+  background: rgb(90,150,215);
+  background: linear-gradient(90deg, rgba(90,150,215,1) 0%, rgba(94,160,231,1) 100%);
+
+  @include max992 {
+    flex-direction: column;
+    text-align: center;
+    max-width: 550px;
+    margin: 0 auto 30px;
+  }
+
+  @media (max-width: 465px) {
+    padding: 30px 25px;
+  }
+
+  &__img {
+    margin-right: 20px;
+
+    @include max992 {
+      margin-right: 0;
+      margin-bottom: 20px;
+    }
+  }
+
+  &__text {
+    @include max992 {
+      max-width: 100%;
+      margin-bottom: 20px;
+    }
+  }
+
+  &__title {
+    color: $white;
+    -webkit-text-stroke: 0;
+    font-size: .9em;
+    margin-bottom: 8px;
+
+    &::after {
+      background-color: $white;
+
+      @include max992 {
+        width: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+    }
+  }
+
+  &__descr {
+    font-size: .6em;
+    color: $white;
+
+    @include max992 {
+      font-size: .7em;
+    }
+
+    @include max576 {
+      font-size: .75em;
+    }
+  }
+
+  &__btn {
+    margin-left: 20px;
+    padding: 10px 20px;
+    font-size: 1em;
+    font-weight: 500;
+    color: $white;
+    text-transform: uppercase;
+    border: 3px solid $white;
+    transition: all .1s linear;
+
+    &:hover {
+      background-color: #fff;
+      color: $accent;
+    }
+  }
+}

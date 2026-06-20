@@ -1,0 +1,25 @@
+// _style.scss (точка входа): заменили @forward на @use для модулей
+@forward '~normalize.css/normalize';
+
+// Общие утилиты (переменные, миксины, стили кнопок)
+@forward 'components/index';
+
+
+// Передаём вперёд все компоненты
+@forward 'components/font';
+@forward 'components/base';
+@forward 'components/header';
+@forward 'components/burger';
+@forward 'components/sidebar';
+@forward 'components/footer';
+@forward 'components/socials';
+@forward 'components/navbar';
+@forward 'components/contacts';
+@forward 'components/tabs';
+@forward 'components/calc';
+@forward 'components/slider';
+@forward 'components/examples';
+@forward 'components/picture';
+@forward 'components/product-card';
+@forward 'components/image-modal';
+@forward 'components/submit-modal';

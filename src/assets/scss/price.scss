@@ -1,0 +1,152 @@
+// use base styles
+@use 'style' as *;
+
+// Components
+@use 'components/calc';
+@use 'components/slider';
+@use 'components/contacts';
+
+
+.price {
+  &__calc {
+    border-radius: 10px;
+    background: #F4F8FD;
+    margin-bottom: 10px;
+
+    &::after {
+      border-radius: 10px;
+      border-color: rgba($accent, .3);
+    }
+  }
+
+  &__tables {
+    width: 100%;
+    background-color: #F4F8FD;
+    border-radius: 10px;
+    padding: 10px 20px 20px;
+
+    &:not(:last-child) {
+      margin-bottom: 25px;
+    }
+  }
+}
+
+.tables {
+  &__title {
+    font-size: 1.4em;
+    font-weight: 400;
+    color: $gray;
+    margin-bottom: 12px;
+    padding-bottom: 5px;
+    position: relative;
+    text-align: center;
+
+    &::after {
+      content: '';
+      width: 60px;
+      height: 3px;
+      background-color: $accent;
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+  }
+
+  &__text {
+    text-align: center;
+    font-size: .9em;
+  }
+}
+
+.table {
+  &__wrapper {
+    padding-top: 10px;
+    background-color: $white;
+    text-align: center;
+    border-radius: 10px;
+
+    &:not(:last-child) {
+      margin-bottom: 20px;
+    }
+  }
+
+  &__title {
+    font-size: 1.1em;
+    font-weight: 400;
+    margin-bottom: 10px;
+  }
+
+  &__inner {
+    overflow-x: auto;
+    width: 100%; /* Занимает доступную ширину */
+  }
+
+  &__wallpapers {
+    min-width: auto;
+  }
+}
+
+table {
+  table-layout: fixed;
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 520px;
+}
+
+thead {
+  th {
+    font-size: 0.7em;
+    font-weight: 500;
+    color: $accent;
+    border-top: 1px solid rgba($accent, .5);
+    border-bottom: 1px solid rgba($accent, .5);
+  }
+}
+
+th {
+  padding: 9px 5px;
+  font-weight: 500;
+  color: $gray;
+
+  &:not(:last-child) {
+    border-right: 1px solid rgba($accent, .5);
+  }
+
+  &.popular {
+    color: #ff7272;
+    &::after {
+      content: 'хит';
+      padding-left: 3px;
+      color: #ff7272;
+    }
+  }
+}
+
+tbody {
+  font-size: .7em;
+  color: $gray;
+
+  td {
+    padding: 8px 5px;
+    &:not(:last-child) {
+      border-right: 1px solid #DEDEDE;
+    }
+  }
+
+  tr {
+    border-bottom: 1px solid #DEDEDE;
+
+    &:nth-child(odd) {
+      background-color: #F7F9FB;
+    }
+  }
+}
+
+td {
+  padding: 8px 0;
+}
+
+tfoot {
+  font-size: .7em;
+}

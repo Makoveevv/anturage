@@ -1,0 +1,153 @@
+@use 'index' as *;
+
+.contacts {
+  background-color: #E7F1FB;
+
+  .container {
+    padding-left: 0;
+
+    @media (max-width: 600px) {
+      padding-right: 0;
+    }
+  }
+
+  .section-title {
+    &::after {
+      @media (max-width: 600px) {
+        width: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+    }
+  }
+
+  &__inner {
+    display: flex;
+    align-items: center;
+
+    @media (max-width: 600px) {
+      flex-direction: column-reverse;
+      align-items: flex-start;
+    }
+  }
+
+  &__map {
+    width: 70%;
+    
+    @media (max-width: 600px) {
+      width: 100%;
+      height: 300px;
+    }
+  }
+
+  &__info {
+    padding-left: 40px;
+    
+    @media (max-width: 600px) {
+      width: 100%;
+      padding: 30px 15px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+  }
+
+  &__phone {
+    display: inline-block;
+    font-size: 1em;
+    font-weight: 500;
+    position: relative;
+    margin-bottom: 3px;
+    padding-left: 26px;
+    transition: color .2s linear;
+
+    &:hover {
+      color: $accent;
+    }
+
+    &::before {
+      content: '';
+      width: 22px;
+      height: 22px;
+      background-image: url('../img/icons/phone-icon.svg');
+      background-repeat: no-repeat;
+      background-size: cover;
+      background-position: center;
+      position: absolute;
+      left: 0;
+      top: 0;
+    }
+  }
+
+  &__mail {
+    display: inline-block;
+    font-size: .7em;
+    text-decoration: underline;
+    position: relative;
+    margin-bottom: 5px;
+    padding-left: 26px;
+
+    &:hover {
+      text-decoration: none;
+    }
+
+    &::before {
+      content: '';
+      width: 22px;
+      height: 22px;
+      background-image: url('../img/icons/mail-icon.svg');
+      background-repeat: no-repeat;
+      background-size: cover;
+      background-position: center;
+      position: absolute;
+      left: 0;
+      bottom: -2px;
+    }
+  }
+
+  &__socials {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+
+    @media (max-width: 600px) {
+      justify-content: center;
+    }
+
+    &-item {
+      display: flex;
+      align-items: center;
+
+      &:not(:last-child) {
+        margin-right: 15px;
+      }
+    }
+
+    &-name {
+      margin-left: 4px;
+      font-size: .7em;
+    }
+  }
+
+  &__subtitle {
+    font-size: .8em;
+    font-weight: 500;
+    margin-bottom: 5px;
+  }
+
+  &__worktime {
+    margin-bottom: 15px;
+
+    &-schedule {
+      font-size: .7em;
+    }
+  }
+
+  &__address {
+    &-text {
+      font-size: .7em;
+      font-style: normal;
+    }
+  }
+}
