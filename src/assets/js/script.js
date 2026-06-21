@@ -4,6 +4,15 @@ import {FreeMode, Navigation} from 'swiper/modules';
 
 window.addEventListener('DOMContentLoaded', () => {
 
+  // Не дёргать тяжёлые пересчёты layout на каждый тик resize (resize стреляет десятки раз в секунду)
+  function debounce(fn, ms = 150) {
+    let t;
+    return (...args) => {
+      clearTimeout(t);
+      t = setTimeout(() => fn.apply(null, args), ms);
+    };
+  }
+
   // Подсветка "сейчас работаем/не работаем" — график берётся из data-атрибутов
   // блока .header__worktime, а не зашит в код. Это позволит позже отдавать
   // другие значения из WordPress (через шаблон/настройки), не трогая JS.
@@ -32,46 +41,14 @@ window.addEventListener('DOMContentLoaded', () => {
       document.querySelector('.product__modal').style.top = document.querySelector('.header__inner-sm').offsetHeight + 'px';
     }
 
-    window.addEventListener('resize', () => { 
+    window.addEventListener('resize', debounce(() => {
       document.querySelector('.main').style.marginTop = document.querySelector('.header__inner-sm').offsetHeight + 15 + 'px';
-    });
+    }));
   }
 
-  /**
-   * 'img' polyfill
-   */
-  (function () {
-    "import strict";
-
-    var el = document.createElement('div');
-    el.style.cssText = 'pointer-events:auto';
-
-    if (el.style.pointerEvents !== 'auto') {
-        el = null;
-
-        var _lock = function (evt) {
-            evt = evt || window.event;
-            var el = evt.target || evt.srcElement;
-            if (el && /\slocked\s/.test(' ' + el.className + ' ')) {
-                if (evt.stopPropagation) {
-                    evt.preventDefault();
-                    evt.stopPropagation();
-                } else {
-                    evt.returnValue = true;
-                    evt.cancelBubble = true;
-                }
-            }
-        };
-
-        if (document.addEventListener) {
-            document.addEventListener('moimportdown', _lock, false);
-            document.addEventListener('contextmenu', _lock, false);
-        } else {
-            document.attachEvent('onmoimportdown', _lock);
-            document.attachEvent('oncontextmenu', _lock);
-        }
-    }
-  })();
+  // Старый IE-полифилл защиты от ПКМ удалён: он был сломан (битые имена событий:
+  // 'moimportdown' вместо 'mousedown') и срабатывал только в IE, который мы больше не
+  // поддерживаем. Полноценную защиту картинок сделаем отдельной задачей при наполнении галереи.
 
   function getScrollbarWidth() {
     // Создаем временный элемент с прокруткой
@@ -168,7 +145,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   setHeaderBottomMenuItemsWidth();
 
-  window.addEventListener('resize', setHeaderBottomMenuItemsWidth);
+  window.addEventListener('resize', debounce(setHeaderBottomMenuItemsWidth));
 
   // Navbar
   
@@ -189,15 +166,6 @@ window.addEventListener('DOMContentLoaded', () => {
       unlockScroll();
     }
       
-      if (document.querySelector('.layer.show')) {
-        document.querySelector('.layer.show').addEventListener('click', e => {
-          document.querySelector('.burger').classList.remove('active');
-          document.querySelector('.navbar').classList.remove('show');
-          document.querySelector('.layer').classList.remove('show');
-          document.querySelector('.header__inner-sm').classList.remove('shadow');
-          unlockScroll();
-        });
-      }
     });
 
 
@@ -424,10 +392,21 @@ window.addEventListener('DOMContentLoaded', () => {
       return isNaN(num) ? value : num;
     }
 
+    const CALC_CACHE_KEY = "calcSheets_cache";
     async function getSheetsData() {
       const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values:batchGet?ranges=${ranges.join("&ranges=")}&key=${apiKey}`;
-      const res = await fetch(url);
-      const data = await res.json();
+      let data;
+      try {
+        const res = await fetch(url);
+        data = await res.json();
+        if (!data.valueRanges) throw new Error('Пустой ответ Google Sheets');
+        localStorage.setItem(CALC_CACHE_KEY, JSON.stringify(data));
+      } catch (err) {
+        console.error('Калькулятор: ошибка загрузки цен, пробую кэш', err);
+        const cached = localStorage.getItem(CALC_CACHE_KEY);
+        if (!cached) return null;
+        data = JSON.parse(cached);
+      }
 
       // ---------- 1. Багеты ----------
       const baguettes = (() => {
@@ -503,8 +482,10 @@ window.addEventListener('DOMContentLoaded', () => {
 
 
   (async () => {
-    const { baguettes, rolls, additional, textures, paintings, popularSizes } = await getSheetsData();
-    
+    const sheets = await getSheetsData();
+    if (!sheets) return; // ни сети, ни кэша — калькулятор не инициализируем, но страница не падает
+    const { baguettes, rolls, additional, textures, paintings, popularSizes } = sheets;
+
 
     if (document.querySelector('.submit-modal .calc')) {
       const modalCalc = document.querySelector('.submit-modal .calc');
@@ -579,14 +560,11 @@ window.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.calc').forEach(calc => {
 
       const baguettesList = calc.querySelector('.calc__frames-list');
-      baguettesList.innerHTML = '';
-      baguettes.forEach(baguette => {
-        baguettesList.innerHTML += `<label class="calc__frames-type">
-                                      <img width="60" height="60" src="assets/img/${baguette.name}.jpeg" alt="${baguette.name}">
+      baguettesList.innerHTML = baguettes.map(baguette => `<label class="calc__frames-type">
+                                      <img loading="lazy" width="60" height="60" src="assets/img/${baguette.name}.jpeg" alt="${baguette.name}">
                                       <input class="calc__frames-input" type="radio" name="frameType" value="${baguette.name}">
                                       <div class="calc__frames-title">${baguette.name}</div>
-                                    </label>`;
-      });
+                                    </label>`).join('');
 
       // переменные для calcPaintingPriceCounting
       let paintingWidth = +calc.querySelector('.calc__size-select--width').value;
@@ -709,17 +687,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
 
       function setWallpaperTextures() {
-        texture.innerHTML = '<option value="нет">Нет</option>';
-        if (wallpaperType == "премиум") {
-          textures.premium.forEach(t => {
-            texture.innerHTML += `<option value="${t.toLowerCase()}">${t}</option>`;
-          });
-        } else {
-          textures.standart.forEach(t => {
-            texture.innerHTML += `<option value="${t.toLowerCase()}">${t}</option>`;
-          });
-          
-        }
+        const list = wallpaperType == "премиум" ? textures.premium : textures.standart;
+        texture.innerHTML = '<option value="нет">Нет</option>' +
+          list.map(t => `<option value="${t.toLowerCase()}">${t}</option>`).join('');
       }
 
       setWallpaperTextures();
@@ -765,8 +735,17 @@ window.addEventListener('DOMContentLoaded', () => {
     // === ЗАГРУЗКА ДАННЫХ ===
     async function fetchPriceData() {
       const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values:batchGet?ranges=${ranges.join("&ranges=")}&key=${apiKey}`;
-      const res = await fetch(url);
-      const data = await res.json();
+      let data;
+      try {
+        const res = await fetch(url);
+        data = await res.json();
+        if (!data.valueRanges) throw new Error('Пустой ответ Google Sheets');
+      } catch (err) {
+        console.error('Таблица цен: ошибка загрузки, отдаю кэш (даже просроченный)', err);
+        const cached = localStorage.getItem(CACHE_KEY);
+        if (cached) return JSON.parse(cached);
+        throw err;
+      }
 
       // 1. Картины
       const [paintHeader, ...paintRows] = data.valueRanges[0].values || [];
@@ -834,17 +813,14 @@ window.addEventListener('DOMContentLoaded', () => {
       const table = document.getElementById('paintings-table');
       if (!table) return;
 
-      table.innerHTML = '';
       const finalArray = buildPopularPaintings();
-      finalArray.forEach(size => {
-        table.innerHTML += `<tr>
+      table.innerHTML = finalArray.map(size => `<tr>
           <th>${size.length}х${size.height}</th>
           <td>${size.priceCottonFrame} руб</td>
           <td>${size.pricePolyFrame} руб</td>
           <td>${size.pricePolyBoard} руб</td>
           <td>${size.pricePaperBoard} руб</td>
-        </tr>`;
-      });
+        </tr>`).join('');
     }
 
     // === ПОСТРОЕНИЕ РУЛОННЫХ ===
@@ -878,23 +854,20 @@ window.addEventListener('DOMContentLoaded', () => {
       if (!table) return;
 
       const rollsTransformed = transformRollsArray(rolls);
-      table.innerHTML = '';
-      rollsTransformed.forEach(roll => {
+      table.innerHTML = rollsTransformed.map(roll => {
         if (roll.subtype === '-') {
-          table.innerHTML += `<tr>
+          return `<tr>
             <td colspan='2'>${roll.type}</td>
             <td>${roll.price} руб</td>
           </tr>`;
-        } else {
-          Object.entries(roll.subtype).forEach(([subtype, price], i) => {
-            table.innerHTML += `<tr>` +
-              (i === 0 ? `<td rowspan="${Object.keys(roll.subtype).length}">${roll.type}</td>` : '') +
-              `<td>${subtype}</td>
-              <td>${price} руб</td>
-            </tr>`;
-          });
         }
-      });
+        return Object.entries(roll.subtype).map(([subtype, price], i) =>
+          `<tr>` +
+            (i === 0 ? `<td rowspan="${Object.keys(roll.subtype).length}">${roll.type}</td>` : '') +
+            `<td>${subtype}</td>
+              <td>${price} руб</td>
+            </tr>`).join('');
+      }).join('');
     }
 
     // === ОСНОВНАЯ ЛОГИКА ===
@@ -902,9 +875,13 @@ window.addEventListener('DOMContentLoaded', () => {
       let data = loadFromCache();
 
       if (!data) {
-        console.log("Цены: загрузка из Google...");
-        data = await fetchPriceData();
-        saveToCache(data);
+        try {
+          data = await fetchPriceData();
+          saveToCache(data);
+        } catch (err) {
+          console.error('Таблица цен: нет ни сети, ни кэша — таблицы не строим', err);
+          return;
+        }
       }
 
       // Распаковка
@@ -923,15 +900,19 @@ window.addEventListener('DOMContentLoaded', () => {
     async function checkCacheAndRefresh() {
       const time = localStorage.getItem(CACHE_TIME_KEY);
       if (!time || (Date.now() - parseInt(time)) >= CACHE_DURATION) {
-        const newData = await fetchPriceData();
-        saveToCache(newData);
+        try {
+          const newData = await fetchPriceData();
+          saveToCache(newData);
 
-        paintings = newData.paintings;
-        popularSizes = newData.popularSizes;
-        rolls = newData.rolls;
+          paintings = newData.paintings;
+          popularSizes = newData.popularSizes;
+          rolls = newData.rolls;
 
-        renderPaintingsTable();
-        renderWallpapersTable();
+          renderPaintingsTable();
+          renderWallpapersTable();
+        } catch (err) {
+          console.error('Таблица цен: обновление не удалось, оставляю текущие данные', err);
+        }
       }
     }
 
@@ -1005,8 +986,11 @@ window.addEventListener('DOMContentLoaded', () => {
    
   if (document.querySelector('.layer')) {
     document.querySelector('.layer').addEventListener('click', e => {
-      document.querySelector('.filters').classList.remove('show');
-      document.querySelector('.product__wrapper').classList.remove('show');
+      document.querySelector('.filters')?.classList.remove('show');
+      document.querySelector('.product__wrapper')?.classList.remove('show');
+      document.querySelector('.burger')?.classList.remove('active');
+      document.querySelector('.navbar')?.classList.remove('show');
+      document.querySelector('.header__inner-sm')?.classList.remove('shadow');
       document.querySelector('.layer').classList.remove('show');
       unlockScroll();
     });
@@ -1132,16 +1116,50 @@ window.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.table__inner').forEach(item => {
       item.style.cssText = `max-width: ${window.innerWidth - document.querySelector('.sidebar').offsetWidth - parseInt(getComputedStyle(document.querySelector('.sidebar')).marginRight, 10) - 70}px`;
     });
-    window.addEventListener('resize', () => {
+    window.addEventListener('resize', debounce(() => {
       document.querySelectorAll('.table__inner').forEach(item => {
         item.style.cssText = `max-width: ${window.innerWidth - document.querySelector('.sidebar').offsetWidth - parseInt(getComputedStyle(document.querySelector('.sidebar')).marginRight, 10) - 70}px`;
       });
+    }));
+  }
+
+  // Проверка формата персональных данных в форме заказа (общая для обычного заказа и распродажи).
+  // Используем нативный Constraint Validation API: ставим setCustomValidity на неверные поля
+  // и показываем подсказку у первого из них через reportValidity(). Возвращает true, если всё ок.
+  function validateOrderFields(form) {
+    // Мягкие проверки: главное — что поле заполнено осмысленно, а телефон/индекс похожи на формат.
+    const rules = [
+      // Ровно 3 слова (Фамилия Имя Отчество), регистр любой; допускаем дефис в слове.
+      { name: 'fullName', test: v => /^[А-Яа-яЁёA-Za-z-]+(?:\s+[А-Яа-яЁёA-Za-z-]+){2}$/.test(v.trim()), msg: 'Введите ФИО полностью: фамилия, имя и отчество (3 слова)' },
+      { name: 'phone',    test: v => /^\+/.test(v.trim()) && v.replace(/\D/g, '').length >= 5, msg: 'Номер должен начинаться с + (например +375…)' },
+      { name: 'city',     test: v => v.trim().length >= 2,             msg: 'Укажите город' },
+      { name: 'address',  test: v => v.trim().length >= 3,             msg: 'Укажите адрес доставки' },
+      { name: 'index',    test: v => /^\d{5,6}$/.test(v.trim()),       msg: 'Почтовый индекс — 6 цифр' },
+    ];
+
+    let firstInvalid = null;
+    rules.forEach(rule => {
+      const field = form.querySelector(`[name="${rule.name}"]`);
+      if (!field) return;
+      field.setCustomValidity('');                 // сбрасываем прошлую ошибку
+      if (!rule.test(field.value)) {
+        field.setCustomValidity(rule.msg);
+        if (!firstInvalid) firstInvalid = field;
+      }
     });
+
+    if (firstInvalid) {
+      // reportValidity только на нашем поле — иначе проверка всей формы цепляет инпуты калькулятора
+      firstInvalid.reportValidity();
+      return false;
+    }
+    return true;
   }
 
   // New Order
   async function makeOrder() {
     const form = document.getElementById("orderForm");
+    if (!validateOrderFields(form)) return false;
 
     const oldPrice = +form.querySelector('.tabs__item.active .calc__count-summ').textContent.slice(0, -2);
     form.querySelector('.tabs__item.active .calc__count-btn').click();
@@ -1180,7 +1198,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     setModalLoading(true);
     try {
-      await fetch('https://script.google.com/macros/s/AKfycbzPL_wzXg56PlYFHpRSNSELujK46YuD1h0xfYjJGcueREgdZNxYdLe4W3sr5z-4HA77eQ/exec', {
+      await fetch('https://script.google.com/macros/s/AKfycbwz_UnxXM0uh9zhTpOGWHC7KXF0Kr1E8CpTmk0glHb4TfouyhjxOUD7OOE0K5Tju-N6NQ/exec', {
         method: 'POST',
         mode: 'no-cors',  // Обход CORS — Apps Script Web App не отдаёт корректные заголовки на preflight
         headers: { 'Content-Type': 'application/json' },
@@ -1199,7 +1217,13 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   if (document.getElementById("orderForm")) {
-    document.getElementById("orderForm").addEventListener("submit", async e => {
+    const orderForm = document.getElementById("orderForm");
+    // Сбрасываем «залипшую» customValidity при правке поля — иначе нативная проверка
+    // блокирует submit ещё до его срабатывания, и форму нельзя отправить после первой ошибки.
+    orderForm.addEventListener("input", e => {
+      if (e.target.name) e.target.setCustomValidity('');
+    });
+    orderForm.addEventListener("submit", async e => {
       e.preventDefault();
       makeOrder();
     });
@@ -1262,8 +1286,16 @@ window.addEventListener('DOMContentLoaded', () => {
     // === ПОЛУЧЕНИЕ ДАННЫХ ===
     async function fetchFromGoogle() {
       const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${apiKey}`;
-      const res = await fetch(url);
-      const data = await res.json();
+      let data;
+      try {
+        const res = await fetch(url);
+        data = await res.json();
+      } catch (err) {
+        console.error('Распродажа: ошибка загрузки, отдаю кэш (даже просроченный)', err);
+        const cached = localStorage.getItem(CACHE_KEY);
+        if (cached) return JSON.parse(cached);
+        throw err;
+      }
 
       const [header, ...rows] = data.values || [];
       if (!header) return [];
@@ -1326,7 +1358,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
         item.innerHTML = `
           <div class="sale__item-img">
-            <img src="${escapeHtml(imgSrc)}" alt="${escapeHtml(product.name)}">
+            <img loading="lazy" src="${escapeHtml(imgSrc)}" alt="${escapeHtml(product.name)}">
           </div>
           <h5 class="sale__item-title">${escapeHtml(product.name)} - ${escapeHtml(product.author)}</h5>
           <div class="sale__item-price">
@@ -1358,13 +1390,12 @@ window.addEventListener('DOMContentLoaded', () => {
         modal.querySelector('.sale-product__price span').textContent = product.newPrice + " бел. р.";
         modal.querySelector('.sale-product__price .sale-product__price--old').textContent = product.oldPrice + " бел. р.";
         const paramsList = modal.querySelector('.sale-product__params-list');
-        paramsList.innerHTML = '';
-        paramsList.innerHTML += `<li class="sale-product__params-item">
+        let paramsHtml = `<li class="sale-product__params-item">
                                   <span class="sale-product__params-property">Размер: </span>
                                   <span class="sale-product__params-value">${escapeHtml(product.length)}x${escapeHtml(product.height)}</span>
                                 </li>`
         if (product.type == 'Твёрдый носитель') {
-          paramsList.innerHTML += `<li class="sale-product__params-item">
+          paramsHtml += `<li class="sale-product__params-item">
                                     <span class="sale-product__params-property">Тип носителя: </span>
                                     <span class="sale-product__params-value">${escapeHtml(product.holderType)}</span>
                                   </li>
@@ -1374,29 +1405,30 @@ window.addEventListener('DOMContentLoaded', () => {
                                   </li>`
         } else if (product.type == 'В рулоне') {
           if (product.wallpaperType) {
-            paramsList.innerHTML += `<li class="sale-product__params-item">
+            paramsHtml += `<li class="sale-product__params-item">
                                     <span class="sale-product__params-property">Тип рулона: </span>
                                     <span class="sale-product__params-value">${escapeHtml(product.rollType)} - ${escapeHtml(product.wallpaperType)}</span>
                                   </li>`
           } else {
-            paramsList.innerHTML += `<li class="sale-product__params-item">
+            paramsHtml += `<li class="sale-product__params-item">
                                     <span class="sale-product__params-property">Тип рулона: </span>
                                     <span class="sale-product__params-value">${escapeHtml(product.rollType)}</span>
                                   </li>`
           }
           if (product.texture) {
-            paramsList.innerHTML += `<li class="sale-product__params-item">
+            paramsHtml += `<li class="sale-product__params-item">
                                     <span class="sale-product__params-property">Текстура: </span>
                                     <span class="sale-product__params-value">${escapeHtml(product.texture)}</span>
                                   </li>`
           }
           if (product.lamination) {
-            paramsList.innerHTML += `<li class="sale-product__params-item">
+            paramsHtml += `<li class="sale-product__params-item">
                                     <span class="sale-product__params-property">Ламинация: </span>
                                     <span class="sale-product__params-value">${escapeHtml(product.lamination)}</span>
                                   </li>`
           }
         }
+        paramsList.innerHTML = paramsHtml;
         document.querySelector('.product__wrapper').classList.add('show');
         lockScroll();
         document.querySelector('.burger').classList.add('active');
@@ -1406,9 +1438,14 @@ window.addEventListener('DOMContentLoaded', () => {
     // === ОФОРМЛЕНИЕ ЗАКАЗА ИЗ РАСПРОДАЖИ ===
     const saleForm = document.querySelector('#seleOrderModal');
     if (saleForm) {
+      // Сбрасываем «залипшую» customValidity при правке поля (см. orderForm выше).
+      saleForm.addEventListener('input', e => {
+        if (e.target.name) e.target.setCustomValidity('');
+      });
       saleForm.addEventListener('submit', async e => {
         e.preventDefault();
         if (!selectedSaleProduct) return;
+        if (!validateOrderFields(saleForm)) return;
 
         const data = Object.fromEntries(new FormData(saleForm).entries());
         const saleOrder = {
@@ -1422,7 +1459,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
         setModalLoading(true);
         try {
-          await fetch('https://script.google.com/macros/s/AKfycbzPL_wzXg56PlYFHpRSNSELujK46YuD1h0xfYjJGcueREgdZNxYdLe4W3sr5z-4HA77eQ/exec', {
+          await fetch('https://script.google.com/macros/s/AKfycbwz_UnxXM0uh9zhTpOGWHC7KXF0Kr1E8CpTmk0glHb4TfouyhjxOUD7OOE0K5Tju-N6NQ/exec', {
             method: 'POST',
             mode: 'no-cors',  // Обход CORS — Apps Script Web App не отдаёт корректные заголовки на preflight
             headers: { 'Content-Type': 'application/json' },
@@ -1453,8 +1490,14 @@ window.addEventListener('DOMContentLoaded', () => {
       let products = loadFromCache();
 
       if (!products) {
-        products = await fetchFromGoogle();
-        saveToCache(products);
+        try {
+          products = await fetchFromGoogle();
+          saveToCache(products);
+        } catch (err) {
+          console.error('Распродажа: нет ни сети, ни кэша', err);
+          renderSale([]);
+          return;
+        }
       }
 
       allSaleProducts = products; // ← сохраняем ВСЕ товары
@@ -1468,12 +1511,16 @@ window.addEventListener('DOMContentLoaded', () => {
     async function refreshIfNeeded() {
       const time = localStorage.getItem(CACHE_TIME_KEY);
       if (!time || (Date.now() - parseInt(time)) >= CACHE_DURATION) {
-        const newProducts = await fetchFromGoogle();
-        saveToCache(newProducts);
-        allSaleProducts = newProducts;
+        try {
+          const newProducts = await fetchFromGoogle();
+          saveToCache(newProducts);
+          allSaleProducts = newProducts;
 
-        const available = newProducts.filter(p => p.status === "В продаже");
-        renderSale(available); // или updateSaleProducts()
+          const available = newProducts.filter(p => p.status === "В продаже");
+          renderSale(available); // или updateSaleProducts()
+        } catch (err) {
+          console.error('Распродажа: обновление не удалось, оставляю текущий список', err);
+        }
       }
     }
 

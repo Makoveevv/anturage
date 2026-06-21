@@ -32,9 +32,6 @@ const OFFSET_KEY = 'tg_offset';
 // Резервный список доступа, если лист «Доступ» ещё не создан или пуст
 const FALLBACK_CHAT_IDS = ['1004344765', '7221249885'];
 
-// Порядок статусов в листе «Заказы» при автосортировке: сначала В работе, потом Выполнено, потом Отменено.
-const ORDER_STATUS_RANK = { 'В работе': 0, 'Выполнено': 1, 'Отменено': 2 };
-
 // Конфигурация двух разделов бота.
 // Колонки задаются ИМЕНАМИ заголовков (не номерами) — перестановка столбцов ничего не ломает.
 const SECTIONS = {
@@ -103,12 +100,13 @@ const CARD_LAYOUT = [
 //  ВХОДНЫЕ ТОЧКИ (приём заказов с сайта)
 // ============================================================================
 
+// ContentService.TextOutput не умеет задавать заголовки (нет .setHeader) — попытка кидает
+// TypeError. CORS-заголовки через ContentService невозможны в принципе; сайт шлёт запросы
+// в режиме no-cors (simple request), поэтому preflight не отправляется и doOptions фактически
+// не вызывается. Оставляем пустой валидный ответ, чтобы ничего не падало.
 function doOptions(e) {
   return ContentService.createTextOutput('')
-    .setMimeType(ContentService.MimeType.TEXT)
-    .setHeader('Access-Control-Allow-Origin', '*')
-    .setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
-    .setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    .setMimeType(ContentService.MimeType.TEXT);
 }
 
 function doPost(e) {
@@ -131,20 +129,12 @@ function handleSiteOrder(formDataSorted) {
 
   sheet.appendRow(formDataSorted);
 
-  // Сортируем лист (В работе → Выполнено → Отменено). Новый заказ при этом смещается наверх,
-  // поэтому ПОСЛЕ сортировки находим его строку заново — чтобы уведомление вело на верный заказ.
-  sortOrdersSheet();
-  const header = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(h => String(h).trim());
-  const match = {};
-  ['Дата', 'ФИО', 'Телефон'].forEach(n => {
-    const i = header.indexOf(n);
-    if (i >= 0) match[n] = formDataSorted[i];
-  });
-  const rowNumber = findOrderRow(sheet, header, match) || sheet.getLastRow();
+  // Лист больше не сортируется → новый заказ всегда последняя строка, номер строки стабилен.
+  const rowNumber = sheet.getLastRow();
 
   invalidateSection('o'); // сбрасываем кэш, чтобы уведомление и список увидели новый заказ
   notifyNewOrder('o', rowNumber);
-  PropertiesService.getScriptProperties().setProperty(LAST_ROW_KEY, sheet.getLastRow());
+  PropertiesService.getScriptProperties().setProperty(LAST_ROW_KEY, rowNumber);
 
   return jsonOut({ status: 'success' });
 }
@@ -300,7 +290,9 @@ function handleMessage(message) {
   // Ожидаем ввод поискового запроса?
   if (getPendingSearch(chatId) && text && !text.startsWith('/')) {
     clearPendingSearch(chatId);
-    showScreen(chatId, searchScreen(text));
+    // Результат — новым сообщением (не правим прошлое), чтобы запрос и выдача оставались в истории.
+    const screen = searchScreen(text);
+    setLastMsg(chatId, msgId(tgSend(chatId, screen.text, screen.keyboard)), false);
     return;
   }
 
@@ -355,10 +347,9 @@ function handleCallback(query) {
       applyStatus(parts[1], Number(parts[2]), parts[3]);
       tgAnswer(query.id, 'Статус обновлён');
       if (parts[1] === 'o') {
-        sortOrdersSheet();                         // лист «Заказы» пересортировать
-        respond(query, listScreen('o', 'active', 1)); // заказ переехал → к списку активных
+        respond(query, listScreen('o', 'active', 1)); // заказ ушёл из активных → к списку активных
       } else {
-        respond(query, cardScreen(parts[1], Number(parts[2]))); // распродажа не двигается
+        respond(query, cardScreen(parts[1], Number(parts[2]))); // распродажа остаётся в карточке
       }
       return;
     case 'cm': // cm:<key>:<row> — начать ввод комментария
@@ -393,7 +384,13 @@ function menuScreen() {
 }
 
 function sendMenu(chatId) {
-  showScreen(chatId, menuScreen());
+  // На текстовую команду (/start и любой ввод) отвечаем НОВЫМ сообщением внизу чата.
+  // Если редактировать старое «живое» сообщение на месте, правка уезжает вверх по истории
+  // и выглядит как «бот не ответил». Старое сообщение убираем, чтобы не плодить меню.
+  const last = getLastMsg(chatId);
+  if (last) tgDelete(chatId, last.id);
+  const screen = menuScreen();
+  setLastMsg(chatId, msgId(tgSend(chatId, screen.text, screen.keyboard)), false);
 }
 
 function listScreen(key, mode, page) {
@@ -420,17 +417,18 @@ function listScreen(key, mode, page) {
   // Текстовые блоки в стиле старого bot.js
   let text = '<b>' + heading + '</b> 📦 (Страница ' + page + '/' + totalPages + ')\n\n';
   const buttons = [];
-  pageItems.forEach(it => {
-    const displayNo = it.rowNumber;
+  pageItems.forEach((it, idx) => {
+    const seqNo = start + idx + 1;   // условный номер 1…N в пределах списка
+    const rowNo = it.rowNumber;      // номер строки в таблице (стабильный, для поиска заказа)
     const date = fmtVal(cell(it.row, s, 'Дата')) || 'Не указано';
     const name = cell(it.row, s, cfg.nameCol) || 'Не указано';
     const price = cell(it.row, s, cfg.priceCol);
-    text += '📦 <b>' + cfg.title + ' №' + displayNo + '</b>\n' +
+    text += '📦 <b>' + cfg.title + ' №' + seqNo + '</b> · строка ' + rowNo + '\n' +
             '📅 Дата: ' + esc(date) + '\n' +
             '👤 ' + esc(cfg.nameCol) + ': ' + esc(name) + '\n' +
             '💰 Цена: ' + (price ? esc(price) + ' руб.' : 'Не указана') + '\n' +
             '📌 Статус: ' + esc(it.status) + '\n\n';
-    buttons.push([{ text: '📦 ' + cfg.title + ' №' + displayNo, callback_data: 'op:' + key + ':' + it.rowNumber }]);
+    buttons.push([{ text: '📦 ' + cfg.title + ' №' + seqNo + ' (строка ' + rowNo + ')', callback_data: 'op:' + key + ':' + rowNo }]);
   });
 
   return {
@@ -466,10 +464,9 @@ function cardScreen(key, rowNumber) {
   }
 
   const status = statusOf(row, s);
-  const displayNo = rowNumber; // номер заказа = номер строки в таблице (без смещения)
 
-  // Секционное оформление (как в старом bot.js), но текстом → навигация быстрая, без моргания.
-  let text = cfg.emoji + ' <b>' + cfg.title + ' №' + displayNo + '</b>\n';
+  // В заголовке карточки — номер строки в таблице (стабильный идентификатор заказа).
+  let text = cfg.emoji + ' <b>' + cfg.title + '</b> · строка ' + rowNumber + '\n';
   CARD_LAYOUT.forEach(group => {
     const lines = [];
     group.cols.forEach(pair => {
@@ -569,12 +566,13 @@ function backKeyboard() {
 
 function searchPromptScreen() {
   return {
-    text: '🔍 <b>Поиск заказа</b>\nОтправьте ФИО, телефон или номер заказа одним сообщением.',
+    text: '🔍 <b>Поиск заказа</b>\nОтправьте ФИО, телефон или номер строки одним сообщением.',
     keyboard: { inline_keyboard: [[{ text: '↩️ Отмена', callback_data: 'search_cancel' }]] },
   };
 }
 
-// Ищет заказы в обоих разделах по подстроке в ФИО/телефоне или по номеру заказа.
+// Ищет среди активных заказов обоих разделов по подстроке в ФИО/телефоне или по номеру строки.
+// Идём по collectItems(active) — та же выборка и нумерация (№), что и в списке заказов.
 function searchScreen(queryText) {
   const q = String(queryText).trim().toLowerCase();
   const buttons = [];
@@ -583,16 +581,17 @@ function searchScreen(queryText) {
   ['o', 's'].forEach(key => {
     const s = readSection(key);
     const cfg = s.cfg;
-    for (let i = 1; i < s.values.length && found < 20; i++) {
-      const row = s.values[i];
-      if (!isValidRow(row)) continue;
-      const rowNumber = i + 1;
-      const name = String(cell(row, s, cfg.nameCol) || '').toLowerCase();
-      const phone = String(cell(row, s, 'Телефон') || '').toLowerCase();
-      if (name.indexOf(q) >= 0 || phone.indexOf(q) >= 0 || String(rowNumber) === q) {
-        const label = cfg.emoji + ' ' + cfg.title + ' №' + rowNumber + ' · ' +
-                      (cell(row, s, cfg.nameCol) || '—') + ' · ' + statusOf(row, s);
-        buttons.push([{ text: cut(label, 60), callback_data: 'op:' + key + ':' + rowNumber }]);
+    const items = collectItems(s, 'active');
+    for (let i = 0; i < items.length && found < 20; i++) {
+      const it = items[i];
+      const seqNo = i + 1;        // условный номер заказа в списке (1…N)
+      const rowNo = it.rowNumber; // номер строки в таблице — по нему и ищем
+      const name = String(cell(it.row, s, cfg.nameCol) || '').toLowerCase();
+      const phone = String(cell(it.row, s, 'Телефон') || '').toLowerCase();
+      if (name.indexOf(q) >= 0 || phone.indexOf(q) >= 0 || String(rowNo) === q) {
+        const label = cfg.emoji + ' ' + cfg.title + ' №' + seqNo + ' (строка ' + rowNo + ') · ' +
+                      (cell(it.row, s, cfg.nameCol) || '—');
+        buttons.push([{ text: cut(label, 60), callback_data: 'op:' + key + ':' + rowNo }]);
         found++;
       }
     }
@@ -616,7 +615,7 @@ function helpScreen() {
     '• ✅/❌/📦 — сменить статус (с подтверждением)\n' +
     '• 📝 — добавить примечание\n' +
     '• 📄 — открыть строку в Google-таблице\n\n' +
-    '🔍 <b>Поиск</b> — найти заказ по ФИО, телефону или номеру.\n' +
+    '🔍 <b>Поиск</b> — найти заказ по ФИО, телефону или номеру строки.\n' +
     '📊 <b>Статистика</b> — количество и суммы заказов.\n' +
     '📁 <b>История</b> (внутри списка) — завершённые заказы.\n\n' +
     'Нет доступа? Отправьте /myid и передайте свой ID руководителю.';
@@ -646,60 +645,6 @@ function applyStatus(key, rowNumber, to) {
   } finally {
     lock.releaseLock();
   }
-}
-
-// Сортирует лист «Заказы»: В работе → Выполнено → Отменено. Внутри групп — исходный порядок.
-// Двигает строки целиком через Range.sort() (форматирование переезжает вместе со строкой).
-// ВАЖНО: только лист «Заказы». «Распродажу» не трогаем — её строки читает сайт по позиции.
-function sortOrdersSheet() {
-  const lock = LockService.getScriptLock();
-  if (!lock.tryLock(10000)) return;
-  try {
-    const cfg = SECTIONS.o;
-    const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(cfg.sheetName);
-    if (!sheet) return;
-    const lastRow = sheet.getLastRow();
-    const lastCol = sheet.getLastColumn();
-    if (lastRow < 3) return; // 0–1 заказ — сортировать нечего
-
-    const header = sheet.getRange(1, 1, 1, lastCol).getValues()[0].map(h => String(h).trim());
-    const statusIdx = header.indexOf(cfg.statusCol);
-    if (statusIdx < 0) return;
-
-    const numRows = lastRow - 1;
-    const helperCol = lastCol + 1;
-
-    // Ключ: ранг статуса * большое число + исходный индекс (стабильность внутри группы)
-    const statuses = sheet.getRange(2, statusIdx + 1, numRows, 1).getValues();
-    const keys = statuses.map((r, i) => {
-      const st = String(r[0]).trim() || 'В работе';      // пустой статус = В работе
-      const rank = st in ORDER_STATUS_RANK ? ORDER_STATUS_RANK[st] : 99; // неизвестные — в конец
-      return [rank * 1000000 + i];
-    });
-    sheet.getRange(2, helperCol, numRows, 1).setValues(keys);
-
-    sheet.getRange(2, 1, numRows, helperCol).sort([{ column: helperCol, ascending: true }]);
-    sheet.deleteColumn(helperCol); // убираем служебную колонку
-    invalidateSection('o');
-  } finally {
-    lock.releaseLock();
-  }
-}
-
-// Находит номер строки заказа по совпадению полей (например Дата+ФИО+Телефон). 0 — если не найдено.
-function findOrderRow(sheet, header, match) {
-  const lastRow = sheet.getLastRow();
-  if (lastRow < 2) return 0;
-  const data = sheet.getRange(2, 1, lastRow - 1, sheet.getLastColumn()).getValues();
-  for (let i = 0; i < data.length; i++) {
-    let ok = true;
-    for (const name in match) {
-      const ci = header.indexOf(name);
-      if (ci < 0 || String(data[i][ci]).trim() !== String(match[name]).trim()) { ok = false; break; }
-    }
-    if (ok) return i + 2;
-  }
-  return 0;
 }
 
 function saveComment(chatId, key, rowNumber, text) {
@@ -915,8 +860,17 @@ function showScreen(chatId, screen) {
       chat_id: chatId, message_id: last.id, text: screen.text,
       parse_mode: 'HTML', disable_web_page_preview: true, reply_markup: screen.keyboard,
     });
-    if (r.ok) setLastMsg(chatId, last.id, false);
-    else setLastMsg(chatId, msgId(tgSend(chatId, screen.text, screen.keyboard)), false);
+    if (r.ok || (r.description && r.description.indexOf('message is not modified') >= 0)) {
+      // r.ok — обновили на месте; «message is not modified» — содержимое и так актуально
+      // (напр. «🔄 Обновить» без новых данных). В обоих случаях оставляем текущее сообщение
+      // и НЕ шлём новое — иначе кнопка «Обновить» плодила бы дубли.
+      setLastMsg(chatId, last.id, false);
+    } else {
+      // Редактирование не удалось (сообщение слишком старое/удалено/сбой) — чтобы не было
+      // дубля, удаляем старое и шлём новое: это замена, а не добавление.
+      tgDelete(chatId, last.id);
+      setLastMsg(chatId, msgId(tgSend(chatId, screen.text, screen.keyboard)), false);
+    }
   } else {
     // Прошлое было фото (или сообщения ещё нет) → пересоздаём текстом
     if (last && last.isPhoto) tgDelete(chatId, last.id);
@@ -936,10 +890,11 @@ function respond(query, screen) {
 //  УТИЛИТЫ
 // ============================================================================
 
+// .setHeader на TextOutput недоступен (см. doOptions) — раньше тут был лишний вызов,
+// который кидал TypeError при формировании ответа. Возвращаем чистый JSON.
 function jsonOut(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj))
-    .setMimeType(ContentService.MimeType.JSON)
-    .setHeader('Access-Control-Allow-Origin', '*');
+    .setMimeType(ContentService.MimeType.JSON);
 }
 
 function esc(v) {

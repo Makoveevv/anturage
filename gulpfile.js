@@ -13,6 +13,7 @@ const uglify = require("gulp-uglify");
 const plumber = require("gulp-plumber");
 const notify = require("gulp-notify");
 const del = require('delete');
+const imagemin = require("gulp-imagemin");
 const webpack = require('webpack');
 const webpackStream = require('webpack-stream');
 const browserSync = require("browser-sync").create();
@@ -143,12 +144,11 @@ function js() {
             }
         }))
         .pipe(webpackStream({
-          mode: "development",
+          mode: "production",
           output: {
             filename: 'script.js',
           },
           watch: false,
-          devtool: "source-map",
           module: {
             rules: [
                 {
@@ -183,7 +183,8 @@ function jsWatch() {
             }
         }))
         .pipe(webpackStream({
-            mode: "production",
+            mode: "development",
+            devtool: "eval-cheap-module-source-map",
             output: {
               filename: 'script.js',
             },
@@ -196,7 +197,6 @@ function jsWatch() {
                       loader: 'babel-loader',
                       options: {
                       presets: [['@babel/preset-env', {
-                          debug: true,
                           corejs: 3,
                           useBuiltIns: "usage"
                       }]]
@@ -224,6 +224,13 @@ function jsonWatch() {
 
 function img() {
     return src(path.src.img)
+        .pipe(imagemin([
+            imagemin.gifsicle({ interlaced: true }),
+            imagemin.mozjpeg({ quality: 80, progressive: true }),
+            imagemin.optipng({ optimizationLevel: 3 }),
+            // Не вырезаем viewBox у SVG — иначе ломается масштабирование логотипа/иконок
+            imagemin.svgo({ plugins: [{ name: 'preset-default', params: { overrides: { removeViewBox: false } } }] })
+        ]))
         .pipe(dest(path.build.img))
         .pipe(browserSync.reload({stream: true}));
 }
