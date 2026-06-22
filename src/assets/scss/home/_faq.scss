@@ -1,0 +1,83 @@
+@use '../components/index' as *;
+
+.faq {
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  &__item {
+    background-color: #F4F8FD;
+    border-left: 3px solid transparent;
+    transition: border-color .15s linear;
+
+    &[open] {
+      border-left-color: $accent;
+
+      .faq__question::after {
+        content: '−';
+      }
+    }
+  }
+
+  &__question {
+    list-style: none;
+    cursor: pointer;
+    padding: 14px 40px 14px 18px;
+    font-size: .75em;
+    font-weight: 600;
+    color: $darkBlue;
+    position: relative;
+    transition: color .1s linear;
+
+    // убираем стандартный маркер <summary> в WebKit
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    &::after {
+      content: '+';
+      position: absolute;
+      right: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.5em;
+      font-weight: 400;
+      line-height: 1;
+      color: $accent;
+    }
+
+    &:hover {
+      color: $accent;
+    }
+
+    @include max576 {
+      font-size: .8em;
+    }
+  }
+
+  &__answer {
+    padding: 0 18px 16px;
+    font-size: .65em;
+    color: $gray;
+
+    p {
+      margin: 0;
+    }
+
+    a {
+      color: $accent;
+      text-decoration: underline;
+      transition: color .1s linear;
+
+      &:hover {
+        color: $darkBlue;
+      }
+    }
+
+    @include max576 {
+      font-size: .65em;
+    }
+  }
+}

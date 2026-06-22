@@ -1,0 +1,6 @@
+# robots.txt — студия «Антураж»
+# ВАЖНО: замените домен anturazh.by на реальный после покупки/привязки
+User-agent: *
+Allow: /
+
+Sitemap: https://anturazh.by/sitemap.xml

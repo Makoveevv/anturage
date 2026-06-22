@@ -40,7 +40,8 @@ const path = {
         css:    srcPath + "assets/{scss,css,less}/*.{scss,css,less}",
         img:    srcPath + "assets/img/**/*.{jpg,jpeg,png,svg,gif,ico,webp,webmanifest,xml,json}",
         fonts:  srcPath + "assets/fonts/**/*.{eot,woff,woff2,ttf,svg}",
-        php:    srcPath + "assets/php/**/*.php"
+        php:    srcPath + "assets/php/**/*.php",
+        root:   srcPath + "{robots.txt,sitemap.xml}"
     },
     watch: {
         html:   srcPath + "**/*.html",
@@ -49,7 +50,8 @@ const path = {
         css:    srcPath + "assets/scss/**/*.scss",
         img:    srcPath + "assets/img/**/*.{jpg, jpeg,png,svg,gif,ico,webp,webmanifest,xml,json}",
         fonts:  srcPath + "assets/fonts/**/*.{eot,woff,woff2,ttf,svg}",
-        php:    srcPath + "assets/php/**/*.php"
+        php:    srcPath + "assets/php/**/*.php",
+        root:   srcPath + "{robots.txt,sitemap.xml}"
     },
     clean: "./" + distPath
 };
@@ -241,6 +243,13 @@ function fonts() {
         .pipe(browserSync.reload({stream: true}));
 }
 
+// robots.txt и sitemap.xml лежат в корне src и копируются в корень dist как есть
+function copyRoot() {
+    return src(path.src.root, {base: srcPath})
+        .pipe(dest(distPath))
+        .pipe(browserSync.reload({stream: true}));
+}
+
 function cleanDist() {
     return del([distPath]);
 }
@@ -252,10 +261,13 @@ function watchFiles() {
     gulp.watch([path.watch.json], jsonWatch);
     gulp.watch([path.watch.img], img);
     gulp.watch([path.watch.fonts], fonts);
+    gulp.watch([path.watch.root], copyRoot);
 }
 
-const build = gulp.series(gulp.parallel(html, css, js, json, img, fonts));
-const watch = gulp.parallel(cleanDist, build, watchFiles, serve);
+// cleanDist стоит первым в series — dist очищается перед каждой сборкой,
+// и удаление гарантированно завершается до записи новых файлов (раньше было parallel — гонка)
+const build = gulp.series(cleanDist, gulp.parallel(html, css, js, json, img, fonts, copyRoot));
+const watch = gulp.series(build, gulp.parallel(watchFiles, serve));
 
 
 
@@ -266,6 +278,7 @@ exports.js = js;
 exports.json = json;
 exports.img = img;
 exports.fonts = fonts;
+exports.copyRoot = copyRoot;
 exports.build = build;
 exports.watch = watch;
 exports.default = watch;

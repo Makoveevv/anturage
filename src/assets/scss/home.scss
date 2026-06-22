@@ -7,6 +7,8 @@
 @use 'home/intro';
 @use 'home/about-us';
 @use 'home/steps';
-@use 'home/your-photo';
+// [parked:your-photo] стили фичи отключены вместе с баннером; вернуть = снять комментарий
+// @use 'home/your-photo';
 @use 'components/slider';
 @use 'home/articles';
+@use 'home/faq';
