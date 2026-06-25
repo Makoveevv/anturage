@@ -130,6 +130,12 @@
     align-items: center;
     flex-wrap: wrap;
 
+    .calc__sizes {
+      @media (max-width: 380px) {
+        flex-direction: row;
+      }
+    }
+
     &-group {
       margin-right: 15px;
 
@@ -220,6 +226,8 @@
     
     input[type=number], select, input[name=onframeHeight], input[name=rollHeight] {
       width: 100%;
+      box-sizing: border-box;
+      min-height: 50px;
       padding: 4px 5px;
       color: $darkBlue;
       background-color: transparent;
@@ -246,7 +254,8 @@
       font-size: .8em;
       position: absolute;
       left: 44px;
-      top: 8px;
+      top: 50%;
+      transform: translateY(-50%);
       pointer-events: none;
     }
     
@@ -274,7 +283,7 @@
     position: absolute;
     right: 2px;
     width: 26px;
-    height: 15px;
+    height: 24px;
     background-color: transparent;
     border: none;
     display: flex;
@@ -292,11 +301,11 @@
   }
 
   &__inc-btn {
-    bottom: 18px;
+    top: 1px;
   }
 
   &__dec-btn {
-    bottom: 2px;
+    bottom: 1px;
   }
   
   &__radio-group {
@@ -399,6 +408,11 @@
 
   &__wallpaper-type {
     margin-bottom: 7px;
+
+      @media (max-width: 380px) {
+        margin-bottom: 0;
+        margin-right: 15px;
+      }
   }
 
   &__material {
@@ -607,6 +621,12 @@
 
     &-type {
       cursor: pointer;
+
+      img {
+        // образцы багета выводятся 60×60; неквадратные исходники
+        // обрезаем, а не сплющиваем (исправляет image-aspect-ratio)
+        object-fit: cover;
+      }
     }
 
     &-title {
@@ -689,6 +709,8 @@
     font-size: .5em;
     font-weight: 500;
     color: $accent;
+    display: block;
+    padding: 6px 0;
 
     &:not(:last-child) {
       margin-bottom: 5px;

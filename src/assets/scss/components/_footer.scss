@@ -151,6 +151,11 @@
     font-size: .7em;
     margin-bottom: 3px;
   }
+
+  &__nav-link {
+    display: inline-block;
+    padding-block: 4px;
+  }
 }
 
 .copyright {

@@ -2,11 +2,12 @@
 
 .pictures__item {
   position: relative;
+  display: block;
 
   &::before,
   &::after {
     content: "";
-    display: block;
+    display: inline-block;
     width: 40px;
     height: 40px;
     background-color: $accent;
@@ -16,7 +17,7 @@
 
   &::before {
     top: 0;
-    right: 0;
+    left: calc(100% - 40px);
   }
 
   &::after {

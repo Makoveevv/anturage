@@ -78,10 +78,10 @@
         },
         {
           "@type": "Question",
-          "name": "Можно ли заказать фотообои или картину по своему изображению?",
+          "name": "Как оформить заказ?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Да. Пришлите нам своё фото или макет — мы подготовим его к печати и подскажем оптимальный размер и материал под вашу стену."
+            "text": "Выберите сюжет картины в галерее изображений и введите необходимые параметры либо свяжитесь с нами по телефону или в любой из социальных сетей."
           }
         },
         {
@@ -120,10 +120,14 @@
     }
     </script>
 
+    <!-- Предзагрузка LCP-фона баннера (ускоряет отрисовку первого экрана на мобильных) -->
+    <link rel="preload" as="image" href="assets/img/bg/logo-bg.svg">
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet"></noscript>
 
     <!-- Styles -->
     <link href="assets/css/home.min.css" rel="stylesheet">
@@ -252,7 +256,7 @@
           </a>
         </div>
 
-        <button class="burger">
+        <button class="burger" aria-label="Меню">
           <span class="burger__line"></span>
           <span class="burger__line"></span>
           <span class="burger__line"></span>
@@ -549,16 +553,16 @@
               <a href="paintings.html" class="intro__card">
                 <div class="intro__card-bg" style="background-image: url('assets/img/bg/paintings-bg.svg');"></div>
                 <span class="intro__card-blur"></span>
-                <h3 class="intro__card-title">Картины и постеры</h3>
+                <h2 class="intro__card-title">Картины и постеры</h2>
               </a>
               <a href="wallpapers.html" class="intro__card">
                 <div class="intro__card-bg" style="background-image: url('assets/img/bg/wallpapers-bg.svg');"></div>
                 <span class="intro__card-blur"></span>
-                <h3 class="intro__card-title">Фотообои и фрески</h3>
+                <h2 class="intro__card-title">Фотообои и фрески</h2>
               </a>
 
               <div class="calc intro__calc">
-                <h4 class="calc__title">Расcчитайте стоимость картины</h4>
+                <h2 class="calc__title">Расcчитайте стоимость картины</h2>
                 <div class="calc__tabs">
                   <div class="tabs__nav">
                     <button class="tabs__button active" data-tab="painting-tab-banner">на твёрдом носителе</button>
@@ -575,7 +579,7 @@
                               <div class="calc__input-wrapper">
                                 <span class="calc__input-name">Длина</span>
                                 <span class="calc__size-input">
-                                  <select class="calc__size-select--width" name="onframeHeight">
+                                  <select class="calc__size-select--width" name="onframeHeight" aria-label="Длина, см">
                                     <option value="30" selected>30</option>
                                     <option value="40">40</option>
                                     <option value="50">50</option>
@@ -591,10 +595,10 @@
                                     <option value="150">150</option>
                                     <option value="160">160</option>
                                   </select>
-                                  <button class="calc__inc-btn calc__num-btn" type="button">
+                                  <button class="calc__inc-btn calc__num-btn" type="button" aria-label="Увеличить">
                                     <img src="assets/img/icons/calc-top-arrow.svg" width="14" height="7" alt="">
                                   </button>
-                                  <button class="calc__dec-btn calc__num-btn" type="button">
+                                  <button class="calc__dec-btn calc__num-btn" type="button" aria-label="Уменьшить">
                                     <img src="assets/img/icons/calc-bottom-arrow.svg" width="14" height="7" alt="">
                                   </button>
                                 </span>
@@ -604,7 +608,7 @@
                               <div class="calc__input-wrapper">
                                 <span class="calc__input-name">Высота</span>
                                 <span class="calc__size-input">
-                                  <select class="calc__size-select--height" name="onframeHeight">
+                                  <select class="calc__size-select--height" name="onframeHeight" aria-label="Высота, см">
                                     <option value="30">30</option>
                                     <option value="40" selected>40</option>
                                     <option value="50">50</option>
@@ -622,10 +626,10 @@
                                     <option value="180">180</option>
                                     <option value="200">200</option>
                                   </select>
-                                  <button class="calc__inc-btn calc__num-btn" type="button">
+                                  <button class="calc__inc-btn calc__num-btn" type="button" aria-label="Увеличить">
                                     <img src="assets/img/icons/calc-top-arrow.svg" width="14" height="7" alt="">
                                   </button>
-                                  <button class="calc__dec-btn calc__num-btn" type="button">
+                                  <button class="calc__dec-btn calc__num-btn" type="button" aria-label="Уменьшить">
                                     <img src="assets/img/icons/calc-bottom-arrow.svg" width="14" height="7" alt="">
                                   </button>
                                 </span>
@@ -635,7 +639,7 @@
 
                           <div class="calc__radio-group">
                             <div class="calc__material">
-                              <h5 class="calc__input-name">Тип холста</h5>
+                              <h3 class="calc__input-name">Тип холста</h3>
                               <div class="calc__radio-box">
                                 <label class="calc__radio">
                                   <input class="calc__radio-input" type="radio" name="material" value="Полиэстер" checked>
@@ -652,7 +656,7 @@
                               </div>
                             </div>
                             <div class="calc__stretch">
-                              <h5 class="calc__input-name">Тип натяжки</h5>
+                              <h3 class="calc__input-name">Тип натяжки</h3>
                               <div class="calc__radio-box">
                                 <label class="calc__radio">
                                   <input class="calc__radio-input" type="radio" name="stretch" value="Галерейная" checked>
@@ -784,11 +788,11 @@
                               <div class="calc__input-wrapper">
                                 <span class="calc__input-name">Длина (50-500 см)</span>
                                 <span class="calc__size-input">
-                                  <input type="number" name="rollLength" min="50" max="500" value="100">
-                                  <button class="calc__inc-btn calc__num-btn" type="button">
+                                  <input type="number" name="rollLength" min="50" max="500" value="100" aria-label="Длина, см">
+                                  <button class="calc__inc-btn calc__num-btn" type="button" aria-label="Увеличить">
                                     <img src="assets/img/icons/calc-top-arrow.svg" width="14" height="7" alt="">
                                   </button>
-                                  <button class="calc__dec-btn calc__num-btn" type="button">
+                                  <button class="calc__dec-btn calc__num-btn" type="button" aria-label="Уменьшить">
                                     <img src="assets/img/icons/calc-bottom-arrow.svg" width="14" height="7" alt="">
                                   </button>
                                 </span>
@@ -798,11 +802,11 @@
                               <div class="calc__input-wrapper">
                                 <span class="calc__input-name">Высота (50-500 см)</span>
                                 <span class="calc__size-input">
-                                  <input type="number" name="rollHeight" min="50" max="500" value="200">
-                                  <button class="calc__inc-btn calc__num-btn" type="button">
+                                  <input type="number" name="rollHeight" min="50" max="500" value="200" aria-label="Высота, см">
+                                  <button class="calc__inc-btn calc__num-btn" type="button" aria-label="Увеличить">
                                     <img src="assets/img/icons/calc-top-arrow.svg" width="14" height="7" alt="">
                                   </button>
-                                  <button class="calc__dec-btn calc__num-btn" type="button">
+                                  <button class="calc__dec-btn calc__num-btn" type="button" aria-label="Уменьшить">
                                     <img src="assets/img/icons/calc-bottom-arrow.svg" width="14" height="7" alt="">
                                   </button>
                                 </span>
@@ -813,7 +817,7 @@
                           <div class="calc__wallpaper-group">
 
                             <div class="calc__wallpaper-type">
-                              <h5 class="calc__input-name">Обои</h5>
+                              <h3 class="calc__input-name">Обои</h3>
                               <div class="calc__radio-box">
                                 <label class="calc__radio">
                                   <input class="calc__radio-input" type="radio" name="wallpaperType" value="премиум" checked>
@@ -827,7 +831,7 @@
                             </div>
 
                             <div class="calc__texture">
-                              <h5 class="calc__input-name">Текстура</h5>
+                              <h3 class="calc__input-name">Текстура</h3>
                               <div class="calc__select-wrap">
                                 <select class="calc__select" name="texture">
                                   <option value="no">Нет</option>
@@ -993,7 +997,7 @@
                     <span class="article__preview">
                       <img loading="lazy" src="assets/img/articles/1.jpg" width="210" height="100" alt="Модные обои 2024 года: главные тенденции дизайна" class="img-responsive">
                     </span>
-                    <h4 class="article__title">Модные обои 2024 года: главные тенденции дизайна</h4>
+                    <h3 class="article__title">Модные обои 2024 года: главные тенденции дизайна</h3>
                   </a>
                   <p class="article__excerpt">
                     Помните, как несколько лет назад все были в восторге от обоев с геометрическими узорами? В этой статье мы разберем, какие обои модные в 2024 году, и почему цвет и узор так важны для создания уникальной атмосферы в вашем интерьере.
@@ -1005,7 +1009,7 @@
                     <span class="article__preview">
                       <img loading="lazy" src="assets/img/articles/2.jpg" width="210" height="100" alt="Как самостоятельно поклеить флизелиновые обои, правильно и аккуратно" class="img-responsive">
                     </span>
-                    <h4 class="article__title">Как самостоятельно поклеить флизелиновые обои, правильно и аккуратно</h4>
+                    <h3 class="article__title">Как самостоятельно поклеить флизелиновые обои, правильно и аккуратно</h3>
                   </a>
                   <p class="article__excerpt">
                     Флизелин и бумага — материалы из одного «семейства». У них одинаковая природа происхождения: они сделаны на основе целлюлозного волокна. Однако на этом их сходство заканчивается...
@@ -1017,7 +1021,7 @@
                     <span class="article__preview">
                       <img loading="lazy" src="assets/img/articles/3.jpg" width="210" height="100" alt="Как повесить картину на стену надежно и незаметно: без шума, пыли и гвоздей" class="img-responsive">
                     </span>
-                    <h4 class="article__title">Как повесить картину на стену надежно и незаметно: без шума, пыли и гвоздей</h4>
+                    <h3 class="article__title">Как повесить картину на стену надежно и незаметно: без шума, пыли и гвоздей</h3>
                   </a>
                   <p class="article__excerpt">
                     Профессиональные дизайнеры решают, где будут висеть картины, на этапе разработки проекта интерьера. Поэтому и крепление под них планируют заранее.
@@ -1085,7 +1089,7 @@
         <div class="container">
           <div class="contacts__inner">
 
-            <iframe class="contacts__map" src="https://maps.google.com/maps?q=%D0%91%D1%80%D0%B5%D1%81%D1%82%2C%20%D1%83%D0%BB.%20%D0%A1%D0%BE%D0%B2%D0%B5%D1%82%D1%81%D0%BA%D0%B8%D1%85%20%D0%9F%D0%BE%D0%B3%D1%80%D0%B0%D0%BD%D0%B8%D1%87%D0%BD%D0%B8%D0%BA%D0%BE%D0%B2%2042/4&hl=ru&z=17&output=embed" height="350" style="border:0; display: block;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            <iframe class="contacts__map" title="Карта проезда: Брест, ул. Советских Пограничников 42/4" src="https://maps.google.com/maps?q=%D0%91%D1%80%D0%B5%D1%81%D1%82%2C%20%D1%83%D0%BB.%20%D0%A1%D0%BE%D0%B2%D0%B5%D1%82%D1%81%D0%BA%D0%B8%D1%85%20%D0%9F%D0%BE%D0%B3%D1%80%D0%B0%D0%BD%D0%B8%D1%87%D0%BD%D0%B8%D0%BA%D0%BE%D0%B2%2042/4&hl=ru&z=17&output=embed" height="350" style="border:0; display: block;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
             <div class="contacts__info">
               <h2 class="section-title">Наши контакты</h2>
               <a href="tel:+375292032099" class="contacts__phone">+375 (29) 20-32-099</a>
@@ -1303,7 +1307,7 @@
 
           <!-- calc -->
           <div class="calc submit-modal__calc">
-            <h4 class="calc__title">Расcчитайте стоимость картины</h4>
+            <h2 class="calc__title">Расcчитайте стоимость картины</h2>
             <div class="calc__tabs">
               <div class="tabs__nav">
                 <button class="tabs__button active" data-tab="painting-tab">на твёрдом носителе</button>
@@ -1320,7 +1324,7 @@
                           <div class="calc__input-wrapper">
                             <span class="calc__input-name">Длина</span>
                             <span class="calc__size-input">
-                              <select class="calc__size-select--width" name="onframeLength">
+                              <select class="calc__size-select--width" name="onframeLength" aria-label="Длина, см">
                                 <option value="30" selected>30</option>
                                 <option value="40">40</option>
                                 <option value="50">50</option>
@@ -1336,10 +1340,10 @@
                                 <option value="150">150</option>
                                 <option value="160">160</option>
                               </select>
-                              <button class="calc__inc-btn calc__num-btn" type="button">
+                              <button class="calc__inc-btn calc__num-btn" type="button" aria-label="Увеличить">
                                 <img src="assets/img/icons/calc-top-arrow.svg" width="14" height="7" alt="">
                               </button>
-                              <button class="calc__dec-btn calc__num-btn" type="button">
+                              <button class="calc__dec-btn calc__num-btn" type="button" aria-label="Уменьшить">
                                 <img src="assets/img/icons/calc-bottom-arrow.svg" width="14" height="7" alt="">
                               </button>
                             </span>
@@ -1349,7 +1353,7 @@
                           <div class="calc__input-wrapper">
                             <span class="calc__input-name">Высота</span>
                             <span class="calc__size-input calc__size-input--height">
-                              <input class="calc__size-select--height" type="text" name="onframeHeight" value="40" readonly>
+                              <input class="calc__size-select--height" type="text" name="onframeHeight" value="40" readonly aria-label="Высота, см">
                             </span>
                           </div>
                         </div>
@@ -1357,7 +1361,7 @@
 
                       <div class="calc__radio-group">
                         <div class="calc__material">
-                          <h5 class="calc__input-name">Тип холста</h5>
+                          <h3 class="calc__input-name">Тип холста</h3>
                           <div class="calc__radio-box">
                             <label class="calc__radio">
                               <input class="calc__radio-input" type="radio" name="material" value="Полиэстер" checked>
@@ -1374,7 +1378,7 @@
                           </div>
                         </div>
                         <div class="calc__stretch">
-                          <h5 class="calc__input-name">Тип натяжки</h5>
+                          <h3 class="calc__input-name">Тип натяжки</h3>
                           <div class="calc__radio-box">
                             <label class="calc__radio">
                               <input class="calc__radio-input" type="radio" name="stretch" value="Галерейная" checked>
@@ -1506,11 +1510,11 @@
                           <div class="calc__input-wrapper">
                             <span class="calc__input-name">Длина (50-500 см)</span>
                             <span class="calc__size-input">
-                              <input type="number" name="rollLength" min="50" max="500" value="100">
-                              <button class="calc__inc-btn calc__num-btn" type="button">
+                              <input type="number" name="rollLength" min="50" max="500" value="100" aria-label="Длина, см">
+                              <button class="calc__inc-btn calc__num-btn" type="button" aria-label="Увеличить">
                                 <img src="assets/img/icons/calc-top-arrow.svg" width="14" height="7" alt="">
                               </button>
-                              <button class="calc__dec-btn calc__num-btn" type="button">
+                              <button class="calc__dec-btn calc__num-btn" type="button" aria-label="Уменьшить">
                                 <img src="assets/img/icons/calc-bottom-arrow.svg" width="14" height="7" alt="">
                               </button>
                             </span>
@@ -1520,11 +1524,11 @@
                           <div class="calc__input-wrapper">
                             <span class="calc__input-name">Высота (50-500 см)</span>
                             <span class="calc__size-input">
-                              <input type="number" name="rollHeight" min="50" max="500" value="200">
-                              <button class="calc__inc-btn calc__num-btn" type="button">
+                              <input type="number" name="rollHeight" min="50" max="500" value="200" aria-label="Высота, см">
+                              <button class="calc__inc-btn calc__num-btn" type="button" aria-label="Увеличить">
                                 <img src="assets/img/icons/calc-top-arrow.svg" width="14" height="7" alt="">
                               </button>
-                              <button class="calc__dec-btn calc__num-btn" type="button">
+                              <button class="calc__dec-btn calc__num-btn" type="button" aria-label="Уменьшить">
                                 <img src="assets/img/icons/calc-bottom-arrow.svg" width="14" height="7" alt="">
                               </button>
                             </span>
@@ -1535,7 +1539,7 @@
                       <div class="calc__wallpaper-group">
 
                         <div class="calc__wallpaper-type">
-                          <h5 class="calc__input-name">Обои</h5>
+                          <h3 class="calc__input-name">Обои</h3>
                           <div class="calc__radio-box">
                             <label class="calc__radio">
                               <input class="calc__radio-input" type="radio" name="wallpaperType" value="премиум" checked>
@@ -1549,7 +1553,7 @@
                         </div>
 
                         <div class="calc__texture">
-                          <h5 class="calc__input-name">Текстура</h5>
+                          <h3 class="calc__input-name">Текстура</h3>
                           <div class="calc__select-wrap">
                             <select class="calc__select" name="texture">
                               <option value="нет">Нет</option>
